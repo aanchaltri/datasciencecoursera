@@ -1,0 +1,225 @@
+Loading and Preprocessing data
+========================================================
+
+```r
+activity <- read.csv("E:/Coursera/RWorkDir/activity.csv")
+library(plyr)
+activity1 <- ddply(activity, .(date), summarise, steps = sum(as.numeric(steps)))
+library(lubridate)
+```
+
+```
+## 
+## Attaching package: 'lubridate'
+## 
+## The following object is masked from 'package:plyr':
+## 
+##     here
+```
+
+```r
+activity1$date <- strptime(activity1$date, "%Y-%m-%d")
+```
+
+
+## Total number of steps taken per day.
+### Plot.
+
+
+```r
+plot(activity1$date, activity1$steps, type = "h", lwd = 11, col = "dark red", 
+    lty = 1, lend = 1, main = "No.of Steps taken per day.", axes = F, xlab = NA, 
+    ylab = NA)
+axis.POSIXct(1, format = "%d %b", at = activity1$date, labels = TRUE, las = 2, 
+    tck = -0.01)
+axis(side = 2, las = 2, tck = -0.01)
+mtext(side = 1, "Days", line = 4)
+mtext(side = 2, "Steps", line = 3.2)
+```
+
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2.png) 
+
+
+### Mean & Median .
+
+```r
+Stepsmean <- mean(activity1$steps, na.rm = TRUE)
+```
+
+
+The mean of steps taken per day is 1.0766 &times; 10<sup>4</sup>(10766.19)
+
+
+```r
+Stepsmedian <- median(activity1$steps, na.rm = TRUE)
+```
+
+
+The mean of steps taken per day is 1.0765 &times; 10<sup>4</sup>(10765).
+
+## The average daily activity pattern.
+
+
+```r
+activity2 <- na.omit(activity)
+library(plyr)
+activity3 <- ddply(activity2, .(interval), summarise, steps = mean(as.numeric(steps)))
+```
+
+
+### Plot.
+
+
+```r
+plot(activity3$interval, activity3$steps, type = "l", lwd = "1", col = "dark red", 
+    xlab = "Time Interval", ylab = "Average steps", main = "Daily Activity Pattern")
+```
+
+![plot of chunk unnamed-chunk-6](figure/unnamed-chunk-6.png) 
+
+
+### Interval with max no. of steps.
+
+
+```r
+maxinterval <- subset(activity3, activity3$steps == max(activity3$steps), select = c(interval))
+```
+
+Interval with max no. of steps is 835.
+
+## Imputing missing values.
+
+### Total number of missing values in the dataset.
+
+
+```r
+NArows <- sum(is.na(activity))
+```
+
+
+No.of rows containing missing values in the dataset are 2304.
+
+### Imputing NA by mean of 5min interval and creting new dataset with imputed values.
+
+
+```r
+old <- read.csv("E:/Coursera/RWorkDir/activity.csv")
+old2 <- na.omit(activity)
+library(plyr)
+new <- ddply(old2, .(interval), summarise, avg.steps = mean(as.numeric(steps)))
+for (i in 1:17568) {
+    a <- NA
+    if (old$steps[i] %in% a) {
+        for (j in 1:288) {
+            if (new$interval[j] == old$interval[i]) {
+                old$steps[i] <- new$avg.steps[j]
+            }
+        }
+    }
+}
+```
+
+
+A new dataset old is created.
+
+
+```r
+library(plyr)
+Newactivity <- ddply(old, .(date), summarise, steps = sum(as.numeric(steps)))
+library(lubridate)
+Newactivity$date <- strptime(Newactivity$date, "%Y-%m-%d")
+```
+
+
+### Plot with new dataset i.e old after imputing NA.
+
+
+```r
+plot(Newactivity$date, Newactivity$steps, type = "h", lwd = 11, col = "dark red", 
+    lty = 1, lend = 1, main = "No.of Steps taken per day(imputing NA by mean)", 
+    axes = F, xlab = NA, ylab = NA)
+axis.POSIXct(1, format = "%d %b", at = Newactivity$date, labels = TRUE, las = 2, 
+    tck = -0.01)
+axis(side = 2, las = 2, tck = -0.01)
+mtext(side = 1, "Days", line = 4)
+mtext(side = 2, "Steps", line = 3.2)
+```
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
+
+
+### Mean and Median
+
+```r
+Newstepsmean <- mean(old$steps)
+```
+
+
+The newmean of steps taken per day is 37.3826(37.3826).
+
+
+```r
+Newstepsmedian <- median(old$steps)
+```
+
+
+The newmedian of steps taken per day is 0(0).
+
+After imputing the NA values by avg steps taken in 5min interval their is a significant difference in mean & median of both the datasets.
+
+## Difference in between weekdays and weekends activity pattern.
+
+
+```r
+Newdata <- old
+library(lubridate)
+Newdata$date <- strptime(Newdata$date, "%Y-%m-%d")
+Newdata$wd <- weekdays(Newdata$date)
+for (i in 1:17568) {
+    if (Newdata$wd[i] == "Saturday" | Newdata$wd[i] == "Sunday") {
+        Newdata$wd[i] <- "weekend"
+    } else {
+        Newdata$wd[i] <- "weekday"
+    }
+}
+Newdata$wd <- factor(Newdata$wd)
+```
+
+
+
+```r
+library(plyr)
+Newdata1 <- ddply(Newdata, .(interval, wd), summarise, steps = mean(as.numeric(steps)))
+Newdata2 <- subset(Newdata1, Newdata1$wd == "weekday", select = c(interval, 
+    wd, steps))
+```
+
+
+### Plot for weekdays.
+
+
+```r
+plot(Newdata2$interval, Newdata2$steps, type = "l", lwd = "1", col = "dark red", 
+    xlab = "Interval", ylab = "Number of steps", main = "Weekdays average plot")
+```
+
+![plot of chunk unnamed-chunk-16](figure/unnamed-chunk-16.png) 
+
+
+
+```r
+Newdata3 <- subset(Newdata1, Newdata1$wd == "weekend", select = c(interval, 
+    wd, steps))
+```
+
+
+### Plot for weekends.
+
+
+```r
+plot(Newdata3$interval, Newdata3$steps, type = "l", lwd = "1", col = "dark red", 
+    xlab = "Interval", ylab = "Number of steps", main = "Weekends average plot")
+```
+
+![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18.png) 
+
