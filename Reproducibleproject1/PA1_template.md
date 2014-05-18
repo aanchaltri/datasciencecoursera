@@ -190,36 +190,17 @@ Newdata$wd <- factor(Newdata$wd)
 ```r
 library(plyr)
 Newdata1 <- ddply(Newdata, .(interval, wd), summarise, steps = mean(as.numeric(steps)))
-Newdata2 <- subset(Newdata1, Newdata1$wd == "weekday", select = c(interval, 
-    wd, steps))
 ```
 
 
-### Plot for weekdays.
+### Plot for weekdays & weekends.
 
 
 ```r
-plot(Newdata2$interval, Newdata2$steps, type = "l", lwd = "1", col = "dark red", 
-    xlab = "Interval", ylab = "Number of steps", main = "Weekdays average plot")
+library(lattice)
+xyplot(steps ~ interval | wd, data = Newdata1, layout = c(1, 2), type = "l")
 ```
 
 ![plot of chunk unnamed-chunk-16](figure/unnamed-chunk-16.png) 
 
-
-
-```r
-Newdata3 <- subset(Newdata1, Newdata1$wd == "weekend", select = c(interval, 
-    wd, steps))
-```
-
-
-### Plot for weekends.
-
-
-```r
-plot(Newdata3$interval, Newdata3$steps, type = "l", lwd = "1", col = "dark red", 
-    xlab = "Interval", ylab = "Number of steps", main = "Weekends average plot")
-```
-
-![plot of chunk unnamed-chunk-18](figure/unnamed-chunk-18.png) 
 
